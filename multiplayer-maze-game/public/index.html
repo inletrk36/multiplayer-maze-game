@@ -114,27 +114,40 @@ function offline(){
 }
 
 // ---------------- SERVER ACTIONS (PLACEHOLDERS) ----------------
-function createServer(){
-    let max = document.getElementById("maxPlayers").value;
-
-    alert("Server created!\nMax players: " + max + "\n\n(Next step: real Node.js server)");
-    
-    startGame("host");
+function createServer() {
+    socket.emit("createRoom");
 }
 
-function joinServer(){
-    let code = document.getElementById("serverCode").value;
+socket.on("roomCreated", (code) => {
+    alert("Server Code: " + code);
+    startGame("host");
+});
 
-    if(!code){
-        alert("Enter a server code or IP");
+function joinServer() {
+
+    const code =
+        document
+        .getElementById("serverCode")
+        .value
+        .trim()
+        .toUpperCase();
+
+    if (!code) {
+        alert("Enter a server code");
         return;
     }
 
-    alert("Joining server: " + code + "\n\n(Next step: connect via WebSocket)");
-
-    startGame("client");
+    socket.emit("joinRoom", code);
 }
 
+socket.on("joinedRoom", (code) => {
+    alert("Joined room " + code);
+    startGame("client");
+});
+
+socket.on("errorMessage", (msg) => {
+    alert(msg);
+});
 // ---------------- GAME START HOOK ----------------
 function startGame(mode){
     console.log("Starting game mode:", mode);
