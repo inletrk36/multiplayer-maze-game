@@ -5,7 +5,6 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 
-// IMPORTANT: needed for hosting HTML + JS
 app.use(express.static("public"));
 
 const io = new Server(server, {
@@ -17,20 +16,26 @@ let players = {};
 io.on("connection", (socket) => {
     console.log("connected:", socket.id);
 
-    players[socket.id] = { x: 0, y: 0 };
+    players[socket.id] = {
+        x: 0,
+        y: 0,
+        color: `hsl(${Math.random()*360},100%,50%)`
+    };
+
+    io.emit("state", players);
 
     socket.on("move", (data) => {
-        let p = players[socket.id];
-        if (!p) return;
+        if (!players[socket.id]) return;
 
-        p.x += data.x;
-        p.y += data.y;
+        players[socket.id].x = data.x;
+        players[socket.id].y = data.y;
 
         io.emit("state", players);
     });
 
     socket.on("disconnect", () => {
         delete players[socket.id];
+        io.emit("state", players);
     });
 });
 
